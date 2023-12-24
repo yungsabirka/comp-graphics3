@@ -1,0 +1,5 @@
+﻿  main.cpp
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(211,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(241,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(243,56): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  comp-graphics-lab3.vcxproj -> C:\Users\sabir\source\repos\comp-graphics-lab3\x64\Debug\comp-graphics-lab3.exe
