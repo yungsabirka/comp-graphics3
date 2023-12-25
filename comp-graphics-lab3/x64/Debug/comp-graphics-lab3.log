@@ -1,5 +1,11 @@
 ﻿  main.cpp
-C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(211,27): warning C4018: '<': signed/unsigned mismatch
-C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(241,27): warning C4018: '<': signed/unsigned mismatch
-C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(243,56): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(220,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(247,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(249,57): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(305,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(306,17): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(310,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(311,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(313,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\sabir\source\repos\comp-graphics-lab3\comp-graphics-lab3\main.cpp(314,13): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   comp-graphics-lab3.vcxproj -> C:\Users\sabir\source\repos\comp-graphics-lab3\x64\Debug\comp-graphics-lab3.exe

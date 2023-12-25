@@ -1,10 +1,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "ResourceManager.h"
 #include <iostream>
+
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "Model.h"
 #include "Camera.h"
+#include "ResourceManager.h"
 
 const unsigned int SCR_WIDTH = 1400;
 const unsigned int SCR_HEIGHT = 900;
@@ -14,14 +16,12 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void processInput(GLFWwindow* window);
 
-// camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
+float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 float toSpot = 1.0f;
@@ -56,43 +56,9 @@ unsigned int loadCubemap(const std::vector<std::string>& faces)
     return textureID;
 }
 
-int main()
+void initSkybox(unsigned int& outSkyboxVAO, unsigned int& outCubemapTexture)
 {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Christmas", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
-
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-    stbi_set_flip_vertically_on_load(true);
-    glEnable(GL_DEPTH_TEST);
-
-    Shader ourShader = ResourceManager::LoadShader("vShader.vs", "fShader.fs", nullptr, "sh");
-    Shader skyboxShader = ResourceManager::LoadShader("skybox.vs", "skybox.fs", nullptr, "skb");
-
-    glfwSetWindowUserPointer(window, &ourShader);
-
     float skyboxVertices[] = {
-        // positions          
         -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
          1.0f, -1.0f, -1.0f,
@@ -156,7 +122,66 @@ int main()
     };
     stbi_set_flip_vertically_on_load(false);
     unsigned int cubemapTexture = loadCubemap(faces);
-    stbi_set_flip_vertically_on_load(false);
+    
+    outSkyboxVAO = skyboxVAO;
+    outCubemapTexture = cubemapTexture;
+}
+
+void initMainShaderLights(Shader& mainShader)
+{
+    mainShader.Use();
+
+    mainShader.SetVector3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
+    mainShader.SetVector3f("dirLight.ambient", 0.1f, 0.1f, 0.1f);
+    mainShader.SetVector3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+    mainShader.SetVector3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+    mainShader.SetVector3f("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+    mainShader.SetVector3f("spotLight.diffuse", 0.0f, 1.0f, 0.0f);
+    mainShader.SetVector3f("spotLight.specular", 1.0f, 0.0f, 0.0f);
+    mainShader.SetFloat("spotLight.constant", 1.0f);
+    mainShader.SetFloat("spotLight.linear", 0.01f);
+    mainShader.SetFloat("spotLight.quadratic", 0.0f);
+    mainShader.SetFloat("spotLight.cutOff", glm::cos(glm::radians(8.0f)));
+    mainShader.SetFloat("spotLight.outerCutOff", glm::cos(glm::radians(10.0f)));
+    mainShader.SetFloat("toSpot", 1.0f);
+}
+
+int main()
+{
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Christmas", NULL, NULL);
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+
+    stbi_set_flip_vertically_on_load(true);
+    glEnable(GL_DEPTH_TEST);
+
+    Shader mainShader = ResourceManager::LoadShader("vShader.vs", "fShader.fs", "main");
+    Shader skyboxShader = ResourceManager::LoadShader("skybox.vs", "skybox.fs", "skybox");
+
+    unsigned int skyboxVAO, cubemapTexture;
+    initSkybox(skyboxVAO, cubemapTexture);
 
     Model ufo("ufo/ufo.obj");
     float ufoScale = 0.05f;
@@ -169,31 +194,15 @@ int main()
 
     glm::vec3 rotationVectors[] = { {500, -800, 300}, {-500, 100, 600}, {100, -100, 0}, {0, -1, 1},
                                     {-2, 0, 1}, {4, -5, 0}, {-4, 2, 4} };
-    float angles[] = {0, 0, 0, 0, 0, 0, 0};
-    float anglesVelocity[] = {0.3f, 0.15f, 0.3f, 0.15f , 0.3f, 0.15f , 0.2f};
+    float angles[] = { 0, 0, 0, 0, 0, 0, 0 };
+    float anglesVelocity[] = { 0.3f, 0.15f, 0.3f, 0.15f , 0.3f, 0.15f , 0.2f };
 
-    glm::mat4 ufoModel = glm::scale(glm::mat4(1.0f),  {ufoScale, ufoScale, ufoScale});
+    glm::mat4 ufoModel = glm::scale(glm::mat4(1.0f), { ufoScale, ufoScale, ufoScale });
 
     Model tree("tree/christmas_tree.obj");
     glm::mat4 treeModel = glm::scale(glm::mat4(1.0f), { 0.3, 0.3, 0.3 });
-    //backpackModel = glm::rotate(backpackModel, glm::radians(-90.0f), {1, 0, 0});
 
-    ourShader.Use();
-
-    ourShader.SetVector3f("dirLight.direction", -0.2f, -1.0f, -0.3f);
-    ourShader.SetVector3f("dirLight.ambient", 0.1f, 0.1f, 0.1f);
-    ourShader.SetVector3f("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-    ourShader.SetVector3f("dirLight.specular", 0.5f, 0.5f, 0.5f);
-
-    ourShader.SetVector3f("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-    ourShader.SetVector3f("spotLight.diffuse", 0.0f, 1.0f, 0.0f);
-    ourShader.SetVector3f("spotLight.specular", 1.0f, 0.0f, 0.0f);
-    ourShader.SetFloat("spotLight.constant", 1.0f);
-    ourShader.SetFloat("spotLight.linear", 0.01f);
-    ourShader.SetFloat("spotLight.quadratic", 0.0f);
-    ourShader.SetFloat("spotLight.cutOff", glm::cos(glm::radians(8.0f)));
-    ourShader.SetFloat("spotLight.outerCutOff", glm::cos(glm::radians(10.0f)));
-    ourShader.SetFloat("toSpot", 1.0f);
+    initMainShaderLights(mainShader);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -206,76 +215,71 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ourShader.Use();
+        mainShader.Use();
 
         for (int i = 0; i < ufosCount; i++)
         {
             glm::vec3 ufoPos = glm::rotate(glm::mat4(1.0f), angles[i], rotationVectors[i]) * glm::vec4(ufoPositions[i], 0);
             std::string lightName = "pointLights[" + std::to_string(i) + "].";
 
-            ourShader.SetVector3f((lightName + "position").c_str(), ufoPos);
-            ourShader.SetFloat((lightName + "contant").c_str(), 4.0f);
-            ourShader.SetFloat((lightName + "linear").c_str(), 0.1f);
-            ourShader.SetFloat((lightName + "quadratic").c_str(), 0.0f);
-            ourShader.SetVector3f((lightName + "ambient").c_str(), 0.1f, 0.1f, 0.1f);
-            ourShader.SetVector3f((lightName + "diffuse").c_str(), 0.35f*ufoColors[i]);
-            ourShader.SetVector3f((lightName + "specular").c_str(), ufoColors[i]);
+            mainShader.SetVector3f((lightName + "position").c_str(), ufoPos);
+            mainShader.SetFloat((lightName + "contant").c_str(), 4.0f);
+            mainShader.SetFloat((lightName + "linear").c_str(), 0.1f);
+            mainShader.SetFloat((lightName + "quadratic").c_str(), 0.0f);
+            mainShader.SetVector3f((lightName + "ambient").c_str(), 0.1f, 0.1f, 0.1f);
+            mainShader.SetVector3f((lightName + "diffuse").c_str(), 0.35f * ufoColors[i]);
+            mainShader.SetVector3f((lightName + "specular").c_str(), ufoColors[i]);
         }
-        
-        ourShader.SetVector3f("spotLight.position", camera.Position);
-        ourShader.SetVector3f("spotLight.direction", camera.Front);
-        
 
-        ourShader.SetVector3f("viewPos", camera.Position);
+        mainShader.SetVector3f("spotLight.position", camera.Position);
+        mainShader.SetVector3f("spotLight.direction", camera.Front);
 
-        // material properties
-        ourShader.SetFloat("material.shininess", 128.0f);
+        mainShader.SetVector3f("viewPos", camera.Position);
+
+        mainShader.SetFloat("material.shininess", 128.0f);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        ourShader.SetMatrix4("projection", projection);
+        mainShader.SetMatrix4("projection", projection);
 
-        // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
-        ourShader.SetMatrix4("view", view);
+        mainShader.SetMatrix4("view", view);
 
         for (int i = 0; i < ufosCount; i++)
         {
-            ourShader.SetFloat("emissionFactor", 0.45f * std::abs(std::sin(i * glfwGetTime())));
-            ourShader.SetVector3f("emissionColor", ufoColors[i]);
+            mainShader.SetFloat("emissionFactor", 0.45f * std::abs(std::sin(i * glfwGetTime())));
+            mainShader.SetVector3f("emissionColor", ufoColors[i]);
 
             angles[i] += glm::radians(anglesVelocity[i]);
-            glm::mat4 model = glm::rotate(glm::mat4(1.0f), angles[i], rotationVectors[i])  * glm::translate(ufoModel, ufoPositions[i]);
-            model = glm::rotate(model, 7.0f * angles[6 - i], {1, 1, 1});
-            ourShader.SetMatrix4("model", model);
-            ufo.Draw(ourShader);
+            glm::mat4 model = glm::rotate(glm::mat4(1.0f), angles[i], rotationVectors[i]) * glm::translate(ufoModel, ufoPositions[i]);
+            model = glm::rotate(model, 7.0f * angles[6 - i], { 1, 1, 1 });
+            mainShader.SetMatrix4("model", model);
+            ufo.Draw(mainShader);
         }
 
-        //backpackModel = glm::rotate(backpackModel, glm::radians(0.1f), {1, -1, 1});
-        ourShader.SetFloat("emissionFactor", 0.0f);
+        mainShader.SetFloat("emissionFactor", 0.0f);
 
-        ourShader.SetMatrix4("model", treeModel);
-        tree.Draw(ourShader);
+        mainShader.SetMatrix4("model", treeModel);
+        tree.Draw(mainShader);
 
-        // draw skybox as last
-        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+        glDepthFunc(GL_LEQUAL);
         skyboxShader.Use();
-        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
         skyboxShader.SetMatrix4("view", view);
         skyboxShader.SetMatrix4("projection", projection);
-        
-        // skybox cube
+
         glBindVertexArray(skyboxVAO);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
-        glDepthFunc(GL_LESS); // set depth function back to default
+        glDepthFunc(GL_LESS);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glfwTerminate();
+    ResourceManager::Clear();
     return 0;
 }
 
@@ -294,11 +298,8 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
     if (firstMouse)
     {
         lastX = xpos;
@@ -307,7 +308,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    float yoffset = lastY - ypos;
 
     lastX = xpos;
     lastY = ypos;
@@ -324,9 +325,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        Shader* sh = static_cast<Shader*>(glfwGetWindowUserPointer(window));
-        sh->Use();
-        
+        Shader mainShader = ResourceManager::GetShader("main");
+        mainShader.Use();
+
         if (toSpot == 0.0f)
         {
             toSpot = 1.0f;
@@ -336,6 +337,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             toSpot = 0.0f;
         }
 
-        sh->SetFloat("toSpot", toSpot);
+        mainShader.SetFloat("toSpot", toSpot);
     }
 }

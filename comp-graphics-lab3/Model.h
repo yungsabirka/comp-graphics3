@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -18,7 +17,6 @@ public:
             meshes[i].Draw(shader);
     }
 private:
-    // model data
     std::vector<Mesh> meshes;
     std::string directory;
     std::vector<Texture> textures_loaded;

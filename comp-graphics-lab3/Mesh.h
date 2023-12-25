@@ -20,19 +20,17 @@ struct Texture {
 
 class Mesh {
 public:
-    // mesh data
     std::vector<Vertex>       vertices;
     std::vector<unsigned int> indices;
     std::vector<Texture>      textures;
-    glm::vec3 diffuse_color = {0, 0, 0};
-    glm::vec3 specular_color = {0, 0, 0};
+    glm::vec3 diffuse_color = { 0, 0, 0 };
+    glm::vec3 specular_color = { 0, 0, 0 };
     bool uses_material = false;
 
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures,
-        glm::vec3 in_diffuse_color = { 0, 0, 0 }, glm::vec3 in_specular_color = {0, 0, 0}, bool in_uses = false);
+        glm::vec3 in_diffuse_color = { 0, 0, 0 }, glm::vec3 in_specular_color = { 0, 0, 0 }, bool in_uses = false);
     void Draw(Shader& shader);
 private:
-    //  render data
     unsigned int VAO, VBO, EBO;
 
     void setupMesh();
